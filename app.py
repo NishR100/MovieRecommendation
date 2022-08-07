@@ -9,17 +9,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 from sklearn.neighbors import NearestNeighbors
 
-df1=pd.read_csv('./Dataset/tmdb_5000_credits.csv')
-df2=pd.read_csv('./Dataset/tmdb_5000_movies.csv')
-df1.columns = ['id','tittle','cast','crew']
-df2= df2.merge(df1,on='id')
-tfidf = TfidfVectorizer(stop_words='english')
-df2['overview'] = df2['overview'].fillna('')
-tfidf_matrix = tfidf.fit_transform(df2['overview'])
-cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
-indices = pd.Series(df2.index, index=df2['title']).drop_duplicates()
 
-def Knn_recommendation(title, cosine_sim=cosine_sim):
+
+def Knn_recommendation(title, cosine_sim,df2):
     # Get the index of the movie that matches the title
     idx = indices[title]
 
@@ -127,17 +119,17 @@ def home():
 @app.route("/KnearestNeighbors")
 def Knn():
     NewMovies=[]
-    with open('recommendationKnn.csv','r') as csvfile:
+    with open('recommendedMovie.csv','r') as csvfile:
         readCSV = csv.reader(csvfile)
         NewMovies.append(random.choice(list(readCSV)))
     m_name = NewMovies[0][0]
     m_name = m_name.title()
     
-    with open('recommendationKnn.csv', 'a',newline='') as csv_file:
+    with open('recommendedMovie.csv', 'a',newline='') as csv_file:
         fieldnames = ['Movie']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writerow({'Movie': m_name})
-        result_final = Knn_recommendation(m_name)
+        result_final = Recommendation(m_name)
         names = []
         dates = []
         ratings = []
@@ -169,7 +161,7 @@ def KnnRecommendation():
         if m_name not in Titles:
             return(render_template('negative.html',name=m_name))
         else:
-            with open('recommendationKnn.csv', 'a',newline='') as csv_file:
+            with open('recommendedMovie.csv', 'a',newline='') as csv_file:
                 fieldnames = ['Movie']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
                 writer.writerow({'Movie': m_name})
